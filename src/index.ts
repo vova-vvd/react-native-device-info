@@ -530,6 +530,13 @@ export const [getBatteryLevel, getBatteryLevelSync] = getSupportedPlatformInfoFu
   defaultValue: -1,
 });
 
+export const [getBatteryTemperature, getBatteryTemperatureSync] = getSupportedPlatformInfoFunctions({
+  supportedPlatforms: ['android', 'ios', 'windows', 'web'],
+  getter: () => RNDeviceInfo.getBatteryTemperature(),
+  syncGetter: () => RNDeviceInfo.getBatteryTemperatureSync(),
+  defaultValue: -1,
+});
+
 export const [getPowerState, getPowerStateSync] = getSupportedPlatformInfoFunctions<
   Partial<PowerState>
 >({
@@ -837,6 +844,8 @@ const deviceInfoModule: DeviceInfoModule = {
   getBaseOsSync,
   getBatteryLevel,
   getBatteryLevelSync,
+  getBatteryTemperature,
+  getBatteryTemperatureSync,
   getBootloader,
   getBootloaderSync,
   getBrand,

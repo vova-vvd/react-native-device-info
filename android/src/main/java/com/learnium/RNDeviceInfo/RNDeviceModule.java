@@ -75,10 +75,12 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
   private RNInstallReferrerClient installReferrerClient;
 
   private double mLastBatteryLevel = -1;
+  private Integer mLastBatteryTemperature = -1;
   private String mLastBatteryState = "";
   private boolean mLastPowerSaveState = false;
 
   private static String BATTERY_STATE = "batteryState";
+  private static String BATTERY_TEMPERATURE= "batteryTemperature";
   private static String BATTERY_LEVEL= "batteryLevel";
   private static String LOW_POWER_MODE = "lowPowerMode";
 
@@ -109,6 +111,7 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
         }
 
         String batteryState = powerState.getString(BATTERY_STATE);
+        Integer batteryTemperature = powerState.getInt(BATTERY_TEMPERATURE);
         Double batteryLevel = powerState.getDouble(BATTERY_LEVEL);
         Boolean powerSaveState = powerState.getBoolean(LOW_POWER_MODE);
 
@@ -116,6 +119,11 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
           sendEvent(getReactApplicationContext(), "RNDeviceInfo_powerStateDidChange", batteryState);
           mLastBatteryState = batteryState;
           mLastPowerSaveState = powerSaveState;
+        }
+
+        if(mLastBatteryTemperature != batteryTemperature) {
+            sendEvent(getReactApplicationContext(), "RNDeviceInfo_batteryTemperatureDidChange", batteryTemperature);
+          mLastBatteryTemperature = batteryTemperature;
         }
 
         if(mLastBatteryLevel != batteryLevel) {
@@ -512,6 +520,21 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void getBatteryLevel(Promise p) { p.resolve(getBatteryLevelSync()); }
+
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  public double getBatteryTemperatureSync() {
+    Intent intent = getReactApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+    WritableMap powerState = getPowerStateFromIntent(intent);
+
+    if(powerState == null) {
+      return 0;
+    }
+
+    return powerState.getInt(BATTERY_TEMPERATURE);
+  }
+
+  @ReactMethod
+  public void getBatteryTemperature(Promise p) { p.resolve(getBatteryTemperatureSync()); }
 
   @ReactMethod(isBlockingSynchronousMethod = true)
   public boolean isAirplaneModeSync() {
@@ -957,6 +980,7 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
     int batteryScale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
     int isPlugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
     int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+    int temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
 
     float batteryPercentage = batteryLevel / (float)batteryScale;
 
@@ -977,6 +1001,7 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
     }
 
     WritableMap powerState = Arguments.createMap();
+    powerState.putInt(BATTERY_TEMPERATURE, temperature);
     powerState.putString(BATTERY_STATE, batteryState);
     powerState.putDouble(BATTERY_LEVEL, batteryPercentage);
     powerState.putBoolean(LOW_POWER_MODE, powerSaveMode);

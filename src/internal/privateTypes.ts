@@ -47,6 +47,8 @@ interface ExposedNativeMethods {
   getBaseOsSync: () => string;
   getBatteryLevel: () => Promise<number>;
   getBatteryLevelSync: () => number;
+  getBatteryTemperature: () => Promise<number>;
+  getBatteryTemperatureSync: () => number;
   getBootloader: () => Promise<string>;
   getBootloaderSync: () => string;
   getBuildId: () => Promise<string>;
